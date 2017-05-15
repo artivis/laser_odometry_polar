@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+from rosparam_handler.parameter_generator_catkin import *
+gen = ParameterGenerator()
+
+gen.add("kf_dist_angular", paramtype="double", default=0.174532925, min=0, max=6.28, configurable=True,
+        description="Maximum angular displacement between key scans.")
+
+gen.add("kf_dist_linear", paramtype="double", default=0.10, min=0, max=2, configurable=True,
+        description="Maximum angular displacement between key scans.")
+
+gen.add("min_valid_points", paramtype="int", default=200, min=0, max=600, configurable=True,
+description="Minimum number of valid reading for scan matching.")
+
+gen.add("search_window", paramtype="int", default=40, min=0, max=600, configurable=True,
+description="Half window search used for orientation.")
+
+gen.add("max_iterations", paramtype="int", default=20, min=0, max=200, configurable=True,
+description="Maximum number of iterations for the polar scan matcher.")
+
+#gen.add("max_iterations_icp", paramtype="int", default=20, min=0, max=200, configurable=True,
+#description="Maximum number of iterations for the ICP.")
+
+gen.add("max_error", paramtype="double", default=0.20, min=0, max=10, configurable=True,
+description="Maximum distance between points considered during data association.")
+
+gen.add("stop_condition", paramtype="double", default=0.01, min=0.000001, max=10, configurable=True,
+description="Iteration stop condition.")
+
+#gen.add("stop_condition_icp", paramtype="double", default=0.01, min=0.000001, max=10, configurable=True,
+#description="Iteration stop condition for ICP.")
+
+exit(gen.generate("laser_odometry_polar", "LaserOdometryPolar", "LaserOdometryPolar"))
