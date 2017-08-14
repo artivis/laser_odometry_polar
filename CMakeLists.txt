@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
 project(laser_odometry_polar)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -17,7 +17,8 @@ catkin_package(
                  polar_scan_matcher rosparam_handler
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include)
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 
 ###############
 ##   Build   ##
