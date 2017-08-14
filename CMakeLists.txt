@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.2.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 project(laser_odometry_polar)
 
 find_package(catkin REQUIRED COMPONENTS
-    dynamic_reconfigure laser_odometry_core
-    polar_scan_matcher rosparam_handler
+  dynamic_reconfigure laser_odometry_core
+  polar_scan_matcher rosparam_handler
 )
 
 generate_ros_parameter_files(
@@ -30,9 +30,13 @@ add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg) # For dynamic_reconfigu
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_genparam) # For rosparam_handler
 
 #Require C++11
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
+if(CMAKE_VERSION VERSION_LESS "3.1")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++11")
+else()
+  set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF)
+endif()
 
 ################
 ##  Install   ##
