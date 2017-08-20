@@ -28,8 +28,8 @@ bool LaserOdometryPolar::configureImpl()
   return true;
 }
 
-bool LaserOdometryPolar::process_impl(const sensor_msgs::LaserScanConstPtr& laser_msg,
-                                      const Transform& prediction)
+bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser_msg,
+                                     const Transform& prediction)
 {
   std::shared_ptr<PMScan> current_scan_ = std::make_shared<PMScan>(laser_msg->ranges.size());
 
