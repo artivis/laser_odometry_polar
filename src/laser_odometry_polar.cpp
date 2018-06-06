@@ -7,8 +7,9 @@
 namespace laser_odometry {
 
 // convert from cm to m
-constexpr double CM_TO_M = 100.0;
-constexpr double READING_ERROR = 999.9;
+constexpr double M_TO_CM = 100.0;
+constexpr double CM_TO_M = 1/M_TO_CM;
+constexpr double READING_ERROR = 99999;
 
 OdomType LaserOdometryPolar::odomType() const noexcept
 {
@@ -35,9 +36,13 @@ bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser
 
   convert(laser_msg, current_scan_);
 
-  current_scan_->rx = prediction.translation()(0);
-  current_scan_->ry = prediction.translation()(1);
+  current_scan_->rx = prediction.translation()(0) * M_TO_CM;
+  current_scan_->ry = prediction.translation()(1) * M_TO_CM;
   current_scan_->th = utils::getYaw(prediction.linear());
+
+  prev_scan_->rx = 0;
+  prev_scan_->ry = 0;
+  prev_scan_->th = 0;
 
   try
   {
@@ -50,10 +55,12 @@ bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser
     return false;
   }
 
-  increment_.translation()(0) =  current_scan_->ry / CM_TO_M;
-  increment_.translation()(1) = -current_scan_->rx / CM_TO_M;
+  increment_.translation()(0) =  current_scan_->ry * CM_TO_M;
+  increment_.translation()(1) = -current_scan_->rx * CM_TO_M;
   increment_.linear() = utils::matrixYaw(current_scan_->th);
 
+  prev_scan_.reset();
+  prev_scan_ = current_scan_;
   return true;
 }
 
@@ -75,7 +82,7 @@ void LaserOdometryPolar::convert(const sensor_msgs::LaserScanConstPtr& scan_msg,
     }
     else
     {
-      psm_scan->r[i] = scan_msg->ranges[i] * CM_TO_M;
+      psm_scan->r[i] = scan_msg->ranges[i] * M_TO_CM;
       psm_scan->x[i] = psm_scan->r[i] * polar_matcher_.pm_co[i];
       psm_scan->y[i] = psm_scan->r[i] * polar_matcher_.pm_si[i];
     }
@@ -93,18 +100,18 @@ bool LaserOdometryPolar::initialize(const sensor_msgs::LaserScanConstPtr& scan_m
   polar_matcher_.PM_L_POINTS         = scan_msg->ranges.size();
 
   polar_matcher_.PM_FOV              = (scan_msg->angle_max - scan_msg->angle_min) * PM_R2D;
-  polar_matcher_.PM_MAX_RANGE        = scan_msg->range_max * CM_TO_M;
+  polar_matcher_.PM_MAX_RANGE        = scan_msg->range_max * M_TO_CM;
 
   polar_matcher_.PM_TIME_DELAY       = 0.00;
 
   polar_matcher_.PM_MIN_VALID_POINTS = params_ptr_->min_valid_points;
   polar_matcher_.PM_SEARCH_WINDOW    = params_ptr_->search_window;
-  polar_matcher_.PM_MAX_ERROR        = params_ptr_->max_error * CM_TO_M;
+  polar_matcher_.PM_MAX_ERROR        = params_ptr_->max_error * M_TO_CM;
 
   polar_matcher_.PM_MAX_ITER         = params_ptr_->max_iterations;
-//  polar_matcher_.PM_MAX_ITER_ICP     = params_ptr_->max_iterations_icp;
-  polar_matcher_.PM_STOP_COND        = params_ptr_->stop_condition * CM_TO_M;
-//  polar_matcher_.PM_STOP_COND_ICP    = params_ptr_->stop_condition_icp * CM_TO_M;
+  polar_matcher_.PM_MAX_ITER_ICP     = params_ptr_->max_iterations;
+  polar_matcher_.PM_STOP_COND        = params_ptr_->stop_condition * M_TO_CM;
+  polar_matcher_.PM_STOP_COND_ICP    = params_ptr_->stop_condition * M_TO_CM;
 
   polar_matcher_.pm_init();
 
