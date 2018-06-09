@@ -4,40 +4,40 @@
 # Desc:	Maximum angular displacement between key scans.
 # Type:	double
 # [min,max]:	[0/6.28]
-kf_dist_angular = 0.174532925
+kf_dist_angular: 0.174532925
 
 # Name:	kf_dist_linear
 # Desc:	Maximum angular displacement between key scans.
 # Type:	double
 # [min,max]:	[0/2]
-kf_dist_linear = 0.1
+kf_dist_linear: 0.1
 
 # Name:	min_valid_points
 # Desc:	Minimum number of valid reading for scan matching.
 # Type:	int
 # [min,max]:	[0/600]
-min_valid_points = 200
+min_valid_points: 200
 
 # Name:	search_window
 # Desc:	Half window search used for orientation.
 # Type:	int
 # [min,max]:	[0/600]
-search_window = 40
+search_window: 40
 
 # Name:	max_iterations
 # Desc:	Maximum number of iterations for the polar scan matcher.
 # Type:	int
 # [min,max]:	[0/200]
-max_iterations = 20
+max_iterations: 20
 
 # Name:	max_error
 # Desc:	Maximum distance between points considered during data association.
 # Type:	double
 # [min,max]:	[0/10]
-max_error = 0.2
+max_error: 0.2
 
 # Name:	stop_condition
 # Desc:	Iteration stop condition.
 # Type:	double
 # [min,max]:	[1e-06/10]
-stop_condition = 0.01
+stop_condition: 0.01
