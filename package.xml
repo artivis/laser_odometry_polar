@@ -26,6 +26,10 @@
   <depend>roscpp</depend>
   <depend>rosparam_handler</depend>
 
+  <exec_depend>laser_odometry_node</exec_depend>
+
+  <test_depend>roslaunch</test_depend>
+
   <export>
     <laser_odometry_core plugin="${prefix}/laser_odometry_plugins.xml" />
   </export>

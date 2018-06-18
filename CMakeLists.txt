@@ -61,7 +61,11 @@ install(DIRECTORY launch
 ##    Test    ##
 ################
 
-#if(CATKIN_ENABLE_TESTING)
+if(CATKIN_ENABLE_TESTING)
+
+  find_package(roslaunch REQUIRED)
+  roslaunch_add_file_check(launch)
+
 #    find_package(rostest REQUIRED)
 #    find_package(catkin REQUIRED COMPONENTS
 #        roslib
@@ -74,4 +78,4 @@ install(DIRECTORY launch
 
 #  target_link_libraries(test_csm_test ${catkin_LIBRARIES} ${PROJECT_NAME})
 
-#endif()
+endif()
