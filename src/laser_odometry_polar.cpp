@@ -8,7 +8,7 @@ namespace laser_odometry {
 
 // convert from cm to m
 constexpr double M_TO_CM = 100.0;
-constexpr double CM_TO_M = 1/M_TO_CM;
+constexpr double CM_TO_M = 1./M_TO_CM;
 constexpr double READING_ERROR = 99999;
 
 OdomType LaserOdometryPolar::odomType() const noexcept
@@ -32,13 +32,11 @@ bool LaserOdometryPolar::configureImpl()
 bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser_msg,
                                      const Transform& prediction)
 {
-  std::shared_ptr<PMScan> current_scan_ = std::make_shared<PMScan>(laser_msg->ranges.size());
-
   convert(laser_msg, current_scan_);
 
-  current_scan_->rx = prediction.translation()(0) * M_TO_CM;
-  current_scan_->ry = prediction.translation()(1) * M_TO_CM;
-  current_scan_->th = utils::getYaw(prediction.linear());
+  current_scan_->rx = -prediction.translation()(1) * M_TO_CM;
+  current_scan_->ry =  prediction.translation()(0) * M_TO_CM;
+  current_scan_->th =  utils::getYaw(prediction.linear());
 
   prev_scan_->rx = 0;
   prev_scan_->ry = 0;
@@ -48,10 +46,9 @@ bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser
   {
     polar_matcher_.pm_psm(prev_scan_.get(), current_scan_.get());
   }
-  catch(const int err)
+  catch (const int /*err*/)
   {
-    ROS_WARN("Error %i in polar scan matching.", err);
-    prev_scan_ = current_scan_;
+    ROS_WARN("Error in polar scan matching.");
     return false;
   }
 
@@ -59,8 +56,6 @@ bool LaserOdometryPolar::processImpl(const sensor_msgs::LaserScanConstPtr& laser
   increment_.translation()(1) = -current_scan_->rx * CM_TO_M;
   increment_.linear() = utils::matrixYaw(current_scan_->th);
 
-  prev_scan_.reset();
-  prev_scan_ = current_scan_;
   return true;
 }
 
@@ -71,11 +66,17 @@ void LaserOdometryPolar::convert(const sensor_msgs::LaserScanConstPtr& scan_msg,
   psm_scan->ry = 0;
   psm_scan->th = 0;
 
-  for (int i = 0; i < scan_msg->ranges.size(); ++i)
-  {
-    int reading_bad = 0;
+  const float r_min = scan_msg->range_min;
+  const float r_max = scan_msg->range_max;
 
-    if (scan_msg->ranges[i] == 0)
+  int reading_bad = 0;
+  for (std::size_t i = 0; i < scan_msg->ranges.size(); ++i)
+  {
+    reading_bad = 0;
+
+    if (!std::isfinite(scan_msg->ranges[i]) ||
+        scan_msg->ranges[i] < r_min         ||
+        scan_msg->ranges[i] > r_max)
     {
       psm_scan->r[i] = READING_ERROR;
       reading_bad = 1;
@@ -115,7 +116,12 @@ bool LaserOdometryPolar::initialize(const sensor_msgs::LaserScanConstPtr& scan_m
 
   polar_matcher_.pm_init();
 
-  prev_scan_ = std::make_shared<PMScan>(scan_msg->ranges.size());
+  prev_scan_    = std::make_shared<PMScan>(scan_msg->ranges.size());
+  current_scan_ = std::make_shared<PMScan>(scan_msg->ranges.size());
+
+  convert(scan_msg, prev_scan_);
+
+  ROS_DEBUG_STREAM("Polar scan matcher initialized !");
 
   return true;
 }
@@ -127,6 +133,11 @@ bool LaserOdometryPolar::isKeyFrame(const Transform& increment)
   if (increment.translation().head<2>().squaredNorm() > kf_dist_linear_sq_) return true;
 
   return false;
+}
+
+void LaserOdometryPolar::isKeyFrame()
+{
+  prev_scan_.swap(current_scan_);
 }
 
 } /* namespace laser_odometry */
